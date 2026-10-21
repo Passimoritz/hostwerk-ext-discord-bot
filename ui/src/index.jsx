@@ -304,5 +304,11 @@ function DiscordBotTile() {
 
 export default {
   pages: { main: DiscordBotPage },
-  slots: { 'dashboard.tiles': [{ id: 'state', title: 'Discord control', icon: 'bot', size: 'third', Component: DiscordBotTile }] },
+  slots: {
+    // Seit Hostwerk 3.0 (SDK 3.2) ohne eigenen Seitenleisten-Eintrag ("nav": false) – die ganze Seite als Reiter im passenden Bereich;
+    // Hostwerk blendet dabei ihren Titel aus (Reiter + Herkunftszeile sagen schon, was es ist), die Knöpfe bleiben
+    // Ein gemeinsamer Reiter „Discord“ mit dem Discord-Status (gleiche id) – Livebetrieb → Betrieb
+    'live.tabs': [{ id: 'discord', title: 'Discord', icon: Bot, Component: DiscordBotPage, group: 'betrieb', order: 61 }],
+    'dashboard.tiles': [{ id: 'state', title: 'Discord control', icon: 'bot', size: 'third', Component: DiscordBotTile }],
+  },
 };

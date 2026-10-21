@@ -8,6 +8,7 @@ Your own Discord bot for Hostwerk: /status, /players, /start, /stop and /restart
 
 ## What it does
 
+- **Where:** Go live → Operate → Discord (one tab together with “Discord status”) and the dashboard tile – no own sidebar entry since 1.2.0; the full page stays under Extensions → Open
 - Slash commands /status, /players, /start, /stop and /restart (German: /spieler, /neustart)
 - Rights through Discord roles or linked team members
 - Stop and restart only after a confirm button
