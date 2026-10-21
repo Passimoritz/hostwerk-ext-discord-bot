@@ -61,7 +61,11 @@ function hostwerkAdapter(host, t) {
     const u = list.find((x) => x.id === memberId);
     return u ? { id: u.id, name: u.name, role: u.role, enabled: u.enabled, services: u.services || [], areas: u.areas || [] } : null;
   }
-  const teamMembers = () => (ctx.users ? (ctx.settings.get().users || []).map((u) => ({ id: u.id, name: u.name, role: u.role === 'admin' ? 'admin' : 'member', enabled: u.enabled !== false })) : null);
+  const teamMembers = () => (ctx.users ? (ctx.settings.get().users || []).map((u) => ({ id: u.id, name: u.name, role: u.role === 'admin' ? 'admin' : 'member', enabled: u.enabled !== false, discordId: u.discordId || null })) : null);
+  /** Team 1.2: member with this Discord ID (set in Team) – null without it. */
+  const memberOf = (discordUserId) => { try { const u = ctx.users && typeof ctx.users.byDiscord === 'function' ? ctx.users.byDiscord(discordUserId) : null; return u ? u.id : null; } catch { return null; } };
+  /** Team 1.2: its own check "may this member do that?" – null = older Team, then the bot's rule applies. */
+  const can = ctx.users && typeof ctx.users.can === 'function' ? (memberId, serviceId, area) => !!ctx.users.can(memberId, serviceId, area) : null;
 
   /** Status text of the bot: the same one Discord status shows in your profile, else our own short summary. */
   function presenceText() {
@@ -83,7 +87,7 @@ function hostwerkAdapter(host, t) {
     return map;
   }
 
-  return { services, control, team, teamMembers, presenceText, playerSnapshot };
+  return { services, control, team, teamMembers, memberOf, can, presenceText, playerSnapshot };
 }
 
 module.exports = { hostwerkAdapter, playerDiff };

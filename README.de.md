@@ -38,7 +38,7 @@ Sprache seines Discords. Jede Aktion steht im Protokoll auf der Seite und in Hos
 ## Rechte
 
 - **Discord-Rollen** – auf der Seite auswählen (der Bot liest die Rollen deines Servers). Server-Admins dürfen immer, außer du schaltest das ab.
-- **Team & Rollen** – einen Discord-Nutzer mit einem Team-Mitglied verknüpfen: Er darf genau die Dienste steuern, die dieses Mitglied in Hostwerk starten und stoppen darf.
+- **Team & Rollen** – beim Mitglied in Team die Discord-ID eintragen (Team 1.2) oder hier einen Discord-Nutzer mit einem Team-Mitglied verknüpfen: Er darf genau die Dienste steuern, die dieses Mitglied in Hostwerk starten und stoppen darf – Team prüft das mit denselben Regeln wie beim Fernzugriff.
 - **Freigegebene Dienste** – alle oder nur ausgewählte. Nicht freigegebene gibt es für Discord nicht – auch nicht für Admins.
 - **Nur dein Server** – auf Wunsch antwortet der Bot nur auf einem Discord-Server.
 - Stoppen und Neustarten brauchen immer einen Bestätigungsknopf; der Knopf gilt nur für die fragende Person, nur einmal und zwei Minuten lang, und beim Drücken werden die Rechte noch einmal geprüft.

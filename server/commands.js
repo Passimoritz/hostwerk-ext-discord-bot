@@ -55,14 +55,16 @@ const exposed = (cfg, serviceId) => cfg.services === 'all' || (Array.isArray(cfg
  * May this person do this? → { ok, via: 'everyone'|'admin'|'role'|'team', why }
  *   read (status, players): everyone – unless read roles are set
  *   control (start, stop, restart): service shared AND (server admin if allowed · one of the control roles ·
- *   linked team member who may start/stop exactly this service)
+ *   team member who may start/stop exactly this service)
+ * Team member: linked here (cfg.links) or – Team 1.2 – the member with this Discord ID (memberOf).
  * team(memberId) → Team member ({ role, enabled, services, areas }) or null (Team extension missing)
+ * can(memberId, serviceId, area) → Team's own check (users.can, Team 1.2) – else the rule here with the same meaning
  */
-function decide(cfg, { action, serviceId, member, userId, team }) {
+function decide(cfg, { action, serviceId, member, userId, team, memberOf, can }) {
   const roles = new Set((member && member.roles) || []);
   const hasRole = (list) => Array.isArray(list) && list.some((r) => roles.has(r));
   const admin = cfg.adminsAlways !== false && isServerAdmin(member);
-  const memberId = cfg.links && userId ? cfg.links[userId] : null;
+  const memberId = (cfg.links && userId ? cfg.links[userId] : null) || (userId && typeof memberOf === 'function' ? memberOf(userId) : null);
   const tm = memberId && typeof team === 'function' ? team(memberId) : null;
   const teamOk = !!(tm && tm.enabled !== false);
   if (!CONTROL.has(action)) {
@@ -75,7 +77,8 @@ function decide(cfg, { action, serviceId, member, userId, team }) {
   if (!serviceId || !exposed(cfg, serviceId)) return { ok: false, why: 'not-shared' };
   if (admin) return { ok: true, via: 'admin' };
   if (hasRole(cfg.controlRoles)) return { ok: true, via: 'role' };
-  if (teamOk && (tm.role === 'admin' || ((tm.services || []).includes(serviceId) && (tm.areas || []).includes('start-stop')))) return { ok: true, via: 'team' };
+  const teamAllows = typeof can === 'function' ? () => can(memberId, serviceId, 'start-stop') : () => tm.role === 'admin' || ((tm.services || []).includes(serviceId) && (tm.areas || []).includes('start-stop'));
+  if (teamOk && teamAllows()) return { ok: true, via: 'team' };
   return { ok: false, why: 'no-right' };
 }
 

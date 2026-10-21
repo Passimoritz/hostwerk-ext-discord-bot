@@ -38,7 +38,7 @@ in the language of their Discord. Every action lands in the log on the page and 
 ## Rights
 
 - **Discord roles** – chosen on the page (the bot reads the roles of your server). Server admins may always, unless you switch that off.
-- **Team & roles** – link a Discord user to a team member: they may control exactly the services that member may start and stop in Hostwerk.
+- **Team & roles** – enter the Discord ID at the member in Team (Team 1.2) or link a Discord user to a team member here: they may control exactly the services that member may start and stop in Hostwerk – Team checks it with the same rules as remote access.
 - **Shared services** – all, or only chosen ones. Services that are not shared do not exist for Discord – not even for admins.
 - **Only your server** – optionally the bot answers on one Discord server only.
 - Stop and restart always need a confirm button; the button works only for the person who asked, once, for two minutes, and the rights are checked again when it is pressed.

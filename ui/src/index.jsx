@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Bot, ExternalLink, KeyRound, ShieldCheck, Server, Radio, Trash2, RefreshCw, Users, ListChecks, Activity, UserPlus } from 'lucide-react';
 import { put, post, del, useApi, openExternal } from '@hostwerk/api';
 import { Btn, SettingRow, Switch, Callout, InfoTip, Field, Empty, Loading, TileEmpty, Seg, toast, confirmDialog } from '@hostwerk/ui';
+import { t } from '@hostwerk/i18n';
 import './style.css';
 
 /*
@@ -142,11 +143,13 @@ function TeamLinks({ s, save }) {
   const linked = Object.keys(c.links || {});
   const users = [...s.users];
   for (const id of linked) if (!users.some((u) => u.id === id)) users.push({ id, name: id });
+  // Team 1.2: Mitglied mit dieser Discord-ID – gilt ohne Verknüpfung hier
+  const autoMember = (uid) => (s.team || []).find((m) => m.discordId === uid && m.enabled) || null;
   const link = (uid, mid) => { const n = { ...(c.links || {}) }; if (mid) n[uid] = mid; else delete n[uid]; save({ links: n }); };
   return (
     <div className="card">
       <div className="card-head"><Users size={16} /><h3>Team members</h3>
-        <InfoTip title="Link Discord users">Everyone who used the bot shows up here. Link them to a team member – the bot then allows exactly what this member may do in Hostwerk (services and “start, stop, restart”).</InfoTip>
+        <InfoTip title="Link Discord users">Everyone who used the bot shows up here. Link them to a team member – the bot then allows exactly what this member may do in Hostwerk (services and “start, stop, restart”). Easier: enter the Discord ID at the member in Team – then the bot knows the person by itself.</InfoTip>
       </div>
       {!users.length ? <TileEmpty icon={UserPlus} text="Nobody has used the bot yet. Type /status in Discord – then you show up here." /> : (
         <table className="table">
@@ -157,7 +160,7 @@ function TeamLinks({ s, save }) {
                 <td><b>{u.name}</b><div className="tiny muted mono">{u.id}</div></td>
                 <td>
                   <select className="select sm" aria-label={`Team member for ${u.name}`} value={(c.links || {})[u.id] || ''} onChange={(e) => link(u.id, e.target.value)}>
-                    <option value="">Not linked</option>
+                    <option value="">{autoMember(u.id) ? t('From Team: {name}', { name: autoMember(u.id).name }) : t('Not linked')}</option>
                     {(s.team || []).map((m) => <option key={m.id} value={m.id} disabled={!m.enabled}>{m.name}{m.role === 'admin' ? ' (admin)' : ''}</option>)}
                   </select>
                 </td>

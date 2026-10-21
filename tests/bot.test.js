@@ -13,7 +13,7 @@ const { Gateway, Rest, OP, appIdFromToken, looksLikeToken } = require('../server
 const C = require('../server/commands');
 const { DiscordBot } = require('../server/bot');
 const { Store, clean } = require('../server/store');
-const { playerDiff } = require('../server/hostwerk');
+const { playerDiff, hostwerkAdapter } = require('../server/hostwerk');
 const { translator } = require('../server/i18n');
 const de = require('../locales/de.json');
 
@@ -213,6 +213,35 @@ test('rights: roles, server admins, team links, shared services', () => {
   assert.ok(C.decide(r, { action: 'players', member: { roles: [ROLE_MOD] }, userId: OTHER }).ok);
   assert.ok(C.decide(r, { action: 'players', member: plain, userId: USER, team }).ok);
   assert.ok(C.needsConfirm({}, 'stop') && C.needsConfirm({}, 'restart') && !C.needsConfirm({}, 'start') && C.needsConfirm({ confirmStart: true }, 'start'));
+});
+
+test('rights with Team 1.2: member found by the Discord ID set in Team, the check of Team decides; links still win', () => {
+  const cfg = { services: 'all', controlRoles: [], readRoles: [ROLE_MOD], adminsAlways: true, links: {} };
+  const plain = { roles: [], permissions: '0' };
+  const team = (id) => ({ m1: { role: 'mitglied', enabled: true, services: [], areas: [] }, m2: { role: 'mitglied', enabled: true } })[id] || null;
+  const memberOf = (uid) => (uid === OTHER ? 'm1' : null);
+  const asked = [];
+  const can = (mid, sid, area) => { asked.push([mid, sid, area]); return mid === 'm1' && sid === 'game:valheim'; };
+  assert.strictEqual(C.decide(cfg, { action: 'start', serviceId: 'game:valheim', member: plain, userId: OTHER, team, memberOf, can }).via, 'team');
+  assert.deepStrictEqual(asked, [['m1', 'game:valheim', 'start-stop']]);
+  assert.strictEqual(C.decide(cfg, { action: 'start', serviceId: 'mc:survival', member: plain, userId: OTHER, team, memberOf, can }).why, 'no-right');
+  assert.ok(C.decide(cfg, { action: 'players', member: plain, userId: OTHER, team, memberOf, can }).ok, 'read: known team member');
+  assert.strictEqual(C.decide(cfg, { action: 'players', member: plain, userId: USER, team, memberOf, can }).why, 'no-read', 'unknown Discord user');
+  // Verknüpfung auf der Bot-Seite geht vor der Discord-ID in Team
+  asked.length = 0;
+  C.decide({ ...cfg, links: { [OTHER]: 'm2' } }, { action: 'start', serviceId: 'game:valheim', member: plain, userId: OTHER, team, memberOf, can });
+  assert.strictEqual(asked[0][0], 'm2');
+});
+
+test('Hostwerk adapter: Team 1.2 gives memberOf and can, older Team gives neither', () => {
+  const S = { users: [{ id: 'm1', name: 'Lena', role: 'mitglied', discordId: '123456789012345678' }] };
+  const users = { byDiscord: (d) => (d === '123456789012345678' ? { id: 'm1' } : null), can: (m, s, a) => m === 'm1' && s === 'mc:x' && a === 'start-stop' };
+  const hw = hostwerkAdapter({ ctx: { settings: { get: () => S }, users } }, (s) => s);
+  assert.strictEqual(hw.memberOf('123456789012345678'), 'm1'); assert.strictEqual(hw.memberOf('1'), null);
+  assert.strictEqual(hw.can('m1', 'mc:x', 'start-stop'), true); assert.strictEqual(hw.can('m1', 'mc:y', 'start-stop'), false);
+  assert.strictEqual(hw.teamMembers()[0].discordId, '123456789012345678');
+  const old = hostwerkAdapter({ ctx: { settings: { get: () => S }, users: {} } }, (s) => s);
+  assert.strictEqual(old.can, null); assert.strictEqual(old.memberOf('123456789012345678'), null);
 });
 
 test('command definitions: English names with German localisations, guild only, autocomplete', () => {

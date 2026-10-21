@@ -220,7 +220,9 @@ class DiscordBot {
   }
 
   allowed(i, action, serviceId) {
-    return C.decide(this.cfg, { action, serviceId, member: i.member, userId: C.userOf(i).id, team: (id) => this.d.hw.team(id) });
+    const hw = this.d.hw;
+    return C.decide(this.cfg, { action, serviceId, member: i.member, userId: C.userOf(i).id, team: (id) => hw.team(id),
+      memberOf: typeof hw.memberOf === 'function' ? (uid) => hw.memberOf(uid) : null, can: typeof hw.can === 'function' ? (mid, sid, area) => hw.can(mid, sid, area) : null });
   }
 
   deny(i, tr, action, svc, why) {
