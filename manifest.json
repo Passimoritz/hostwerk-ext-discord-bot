@@ -1,0 +1,79 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Passimoritz/hostwerk-public/main/sdk/manifest.schema.json",
+  "id": "discord-bot",
+  "name": {
+    "de": "Discord-Steuerung",
+    "en": "Discord control"
+  },
+  "description": {
+    "de": "Dein eigener Discord-Bot für Hostwerk: /status, /spieler, /start, /stop und /neustart direkt aus deinem Discord-Server. Wer Dienste steuern darf, legst du über Discord-Rollen oder dein Team fest – Stoppen und Neustarten bestätigt man per Knopf.",
+    "en": "Your own Discord bot for Hostwerk: /status, /players, /start, /stop and /restart right from your Discord server. You decide who may control services through Discord roles or your team – stop and restart are confirmed with a button."
+  },
+  "version": "1.0.0",
+  "author": "Hostwerk",
+  "homepage": "https://github.com/Passimoritz/hostwerk-ext-discord-bot",
+  "license": "MIT",
+  "icon": "icon.svg",
+  "banner": "banner.svg",
+  "color": "#4752c4",
+  "category": "communication",
+  "hostwerk": ">=2.11.0",
+  "permissions": [
+    "native"
+  ],
+  "page": {
+    "title": {
+      "de": "Discord-Steuerung",
+      "en": "Discord control"
+    },
+    "description": {
+      "de": "Dienste per Discord-Bot steuern.",
+      "en": "Control services with a Discord bot."
+    },
+    "icon": "bot",
+    "nav": {
+      "group": "system"
+    }
+  },
+  "backend": "server/index.js",
+  "ui": "ui/index.js",
+  "synergies": [
+    {
+      "with": "team",
+      "title": {
+        "de": "Rechte aus dem Team",
+        "en": "Rights from your team"
+      },
+      "text": {
+        "de": "Verknüpfe Discord-Nutzer mit Team-Mitgliedern – sie dürfen per Discord genau die Dienste starten und stoppen, die ihnen in Hostwerk freigegeben sind.",
+        "en": "Link Discord users to team members – from Discord they may start and stop exactly the services shared with them in Hostwerk."
+      }
+    },
+    {
+      "with": "discord-status",
+      "title": {
+        "de": "Gleicher Status überall",
+        "en": "Same status everywhere"
+      },
+      "text": {
+        "de": "Der Bot zeigt denselben Text wie der Discord-Status in deinem Profil.",
+        "en": "The bot shows the same text as Discord status in your profile."
+      }
+    },
+    {
+      "with": "player-ticker",
+      "title": {
+        "de": "Spieler-Meldungen in Discord",
+        "en": "Player messages in Discord"
+      },
+      "text": {
+        "de": "Wer auf deine Minecraft-Server kommt oder geht, erscheint wie im Spieler-Ticker auch in einem Discord-Kanal.",
+        "en": "Who joins or leaves your Minecraft servers shows up in a Discord channel too, just like in the player ticker."
+      }
+    }
+  ],
+  "uses": [
+    "users",
+    "discord"
+  ]
+}

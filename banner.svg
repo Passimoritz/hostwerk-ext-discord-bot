@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 400" role="img" aria-hidden="true">
+<defs>
+<linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#141835"/><stop offset=".62" stop-color="#2b3377"/><stop offset="1" stop-color="#4752c4"/></linearGradient>
+<radialGradient id="o1"><stop offset="0" stop-color="#757dd3" stop-opacity=".55"/><stop offset="1" stop-color="#757dd3" stop-opacity="0"/></radialGradient>
+<radialGradient id="o2"><stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>
+<pattern id="dots" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" fill-opacity=".09"/></pattern>
+<linearGradient id="glass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff" stop-opacity=".22"/><stop offset="1" stop-color="#ffffff" stop-opacity=".06"/></linearGradient>
+<linearGradient id="fade" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity=".35"/><stop offset=".55" stop-color="#000" stop-opacity="0"/></linearGradient>
+</defs>
+<style>.b1,.b2,.f,.s,.k{transform-box:fill-box;transform-origin:50% 50%}
+@keyframes b1{to{transform:translate(-90px,40px) scale(1.15)}}@keyframes b2{to{transform:translate(70px,-30px) scale(.9)}}
+@keyframes f{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes s{0%,100%{opacity:.25;transform:scale(.5) rotate(0)}50%{opacity:.95;transform:scale(1) rotate(45deg)}}
+@keyframes k{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+.b1{animation:b1 16s ease-in-out infinite alternate}.b2{animation:b2 19s ease-in-out infinite alternate}
+.f{animation:f 9s ease-in-out infinite}.f1{animation-duration:11s;animation-delay:-3s}.f2{animation-duration:13s;animation-delay:-6s}
+.s{animation:s 3.4s ease-in-out infinite}.k{animation:k 6s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.b1,.b2,.f,.s,.k{animation:none!important}}</style>
+<rect width="1280" height="400" fill="url(#bg)"/>
+<circle class="b1" cx="1020" cy="80" r="300" fill="url(#o1)"/>
+<circle class="b2" cx="260" cy="380" r="260" fill="url(#o2)"/>
+<rect width="1280" height="400" fill="url(#dots)"/>
+<rect width="1280" height="400" fill="url(#fade)"/>
+<g transform="translate(150 92) rotate(-8) scale(2.2)"><g class="f f0" fill="none" stroke="#ffffff" stroke-opacity=".13" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 17a2 2 0 0 1-2 2H6.828a2 2 0 0 0-1.414.586l-2.202 2.202A.71.71 0 0 1 2 21.286V5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2z"/></g></g>
+<g transform="translate(380 268) rotate(6) scale(1.8)"><g class="f f1" fill="none" stroke="#ffffff" stroke-opacity=".13" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.77.04"/></g></g>
+<g transform="translate(640 70) rotate(-4) scale(1.5)"><g class="f f2" fill="none" stroke="#ffffff" stroke-opacity=".13" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></g></g>
+<g class="k">
+<rect x="882" y="92" width="216" height="216" rx="54" fill="url(#glass)" stroke="#ffffff" stroke-opacity=".28" stroke-width="2"/>
+<g transform="translate(918 128) scale(6)" fill="none" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/></g>
+</g>
+<g transform="translate(1040 74) scale(0.9)"><path class="s" style="animation-delay:0s" d="M0 -10 C1.2 -2.6 2.6 -1.2 10 0 C2.6 1.2 1.2 2.6 0 10 C-1.2 2.6 -2.6 1.2 -10 0 C-2.6 -1.2 -1.2 -2.6 0 -10Z" fill="#ffffff"/></g><g transform="translate(1170 300) scale(0.6)"><path class="s" style="animation-delay:1.1s" d="M0 -10 C1.2 -2.6 2.6 -1.2 10 0 C2.6 1.2 1.2 2.6 0 10 C-1.2 2.6 -2.6 1.2 -10 0 C-2.6 -1.2 -1.2 -2.6 0 -10Z" fill="#ffffff"/></g><g transform="translate(860 320) scale(0.5)"><path class="s" style="animation-delay:2.2s" d="M0 -10 C1.2 -2.6 2.6 -1.2 10 0 C2.6 1.2 1.2 2.6 0 10 C-1.2 2.6 -2.6 1.2 -10 0 C-2.6 -1.2 -1.2 -2.6 0 -10Z" fill="#ffffff"/></g><g transform="translate(560 150) scale(0.45)"><path class="s" style="animation-delay:0.6s" d="M0 -10 C1.2 -2.6 2.6 -1.2 10 0 C2.6 1.2 1.2 2.6 0 10 C-1.2 2.6 -2.6 1.2 -10 0 C-2.6 -1.2 -1.2 -2.6 0 -10Z" fill="#ffffff"/></g>
+</svg>
