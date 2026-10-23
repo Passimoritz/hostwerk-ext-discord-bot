@@ -44,12 +44,16 @@ function Setup({ onSaved }) {
       <div className="card-head"><Bot size={16} /><h3>Set up your bot</h3>
         <InfoTip title="Your own bot">The bot belongs to you: Hostwerk logs in with your token, the token stays encrypted on this PC and only goes to Discord.</InfoTip>
       </div>
+      {/* Kurz: Portal-Knopf und Token-Feld in einer Zeile, die drei Schritte stehen im ⓘ */}
       <div className="card-body stack">
-        <ol className="dbot-steps">
-          <li><span>Open the Discord developer portal and create a “New Application” – its name is what people see in Discord, for example “Hostwerk”.</span><Btn className="sm" icon={ExternalLink} onClick={() => openExternal(PORTAL)}>Open the developer portal</Btn></li>
-          <li><span>Under “Bot” click “Reset Token” and copy the token. No special intents are needed.</span></li>
-          <li><span>Paste the token here:</span></li>
-        </ol>
+        <div className="row-tight dbot-token">
+          <Btn className="sm" icon={ExternalLink} onClick={() => openExternal(PORTAL)}>Open the developer portal</Btn>
+          <InfoTip pop title="How to get the token">
+            <span className="dbot-tip-step">Open the Discord developer portal and create a “New Application” – its name is what people see in Discord, for example “Hostwerk”.</span>
+            <span className="dbot-tip-step">Under “Bot” click “Reset Token” and copy the token. No special intents are needed.</span>
+            <span className="dbot-tip-step">Paste the token here.</span>
+          </InfoTip>
+        </div>
         <TokenForm onSaved={onSaved} />
       </div>
     </div>
@@ -234,6 +238,9 @@ function DiscordBotPage() {
   const st = useApi('/discord-bot', []);
   const s = st.data;
   const [token, setToken] = useState(false);
+  // Rechte, Team, Meldungen und Protokoll als Abschnitte nebeneinander statt untereinander (gemerkt je Rechner)
+  const [part, setPartRaw] = useState(() => { try { return localStorage.getItem('dbot:part') || 'rights'; } catch { return 'rights'; } });
+  const setPart = (v) => { setPartRaw(v); try { localStorage.setItem('dbot:part', v); } catch { /* egal */ } };
   useEffect(() => { const t = setInterval(() => st.reload({ silent: true }), 5000); return () => clearInterval(t); }, [st.reload]);
   if (!s) return st.error ? <Empty icon={Bot} title="Could not load" text={String(st.error.message || st.error)} /> : <Loading />;
   const save = async (patch) => { try { st.setData(await put('/discord-bot/settings', patch)); } catch (e) { toast.error(e); } };
@@ -275,13 +282,18 @@ function DiscordBotPage() {
           </div>
         </div>
       )}
-      <div className="grid grid-2 dbot-grid">
-        <Rights s={s} save={save} />
-        <Services s={s} save={save} />
-        <TeamLinks s={s} save={save} />
-        <Extras s={s} save={save} />
+      <div className="dbot-parts">
+        <Seg value={part} onChange={setPart} options={[
+          { id: 'rights', label: 'Rights', icon: ShieldCheck },
+          { id: 'team', label: 'Team members', icon: Users },
+          { id: 'messages', label: 'Messages', icon: Radio },
+          { id: 'log', label: s.log.length ? t('Log ({n})', { n: s.log.length }) : t('Log'), icon: ListChecks },
+        ]} />
       </div>
-      <Log s={s} onClear={clearLog} />
+      {part === 'rights' && <div className="grid grid-2 dbot-grid"><Rights s={s} save={save} /><Services s={s} save={save} /></div>}
+      {part === 'team' && <TeamLinks s={s} save={save} />}
+      {part === 'messages' && <Extras s={s} save={save} />}
+      {part === 'log' && <Log s={s} onClear={clearLog} />}
     </div>
   );
 }

@@ -1,8 +1,6 @@
 /* Discord control: setup steps, role chips, service list */
-.dbot-grid { align-items: start; margin-bottom: var(--sp-4); }
-.dbot-steps { margin: 0; padding-left: var(--sp-5); display: flex; flex-direction: column; gap: var(--sp-2); }
-.dbot-steps li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); }
-.dbot-steps li > span { flex: 1 1 320px; }
+.dbot-grid { align-items: start; }
+.dbot-parts { margin-bottom: var(--sp-3); }
 .dbot-token, .dbot-actions, .dbot-feed { flex-wrap: wrap; }
 .dbot-token .input { min-width: 220px; }
 .dbot-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
@@ -17,3 +15,6 @@
 .dbot-state { width: 8px; height: 8px; border-radius: var(--r-pill); background: var(--muted); flex: none; }
 .dbot-state.on { background: var(--ok); }
 .dbot-tile { gap: var(--sp-2); }
+.info-tip-body:has(.dbot-tip-step) { counter-reset: dbot-step; }
+.dbot-tip-step { display: block; margin-top: var(--sp-1); counter-increment: dbot-step; }
+.dbot-tip-step::before { content: counter(dbot-step) ". "; font-weight: 600; }

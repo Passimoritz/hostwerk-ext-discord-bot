@@ -164,6 +164,11 @@
   "Start a service": "Einen Dienst starten",
   "Stop a service (asks first)": "Einen Dienst stoppen (mit Rückfrage)",
   "Restart a service (asks first)": "Einen Dienst neu starten (mit Rückfrage)",
+  "Messages": "Meldungen",
+  "Log": "Protokoll",
+  "Log ({n})": "Protokoll ({n})",
+  "How to get the token": "So bekommst du den Token",
+  "Paste the token here.": "Füge den Token hier ein.",
   "$patterns": [
     [
       "{} actions today",
