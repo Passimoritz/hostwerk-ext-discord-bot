@@ -4,7 +4,9 @@
 
 Your own Discord bot for Hostwerk: /status, /players, /start, /stop and /restart right from your Discord server. You decide who may control services through Discord roles or your team – stop and restart are confirmed with a button.
 
-[Deutsch](README.de.md) · An official [Hostwerk](https://github.com/Passimoritz/hostwerk-public) extension (SDK 2.7, native extension)
+[Deutsch](README.de.md) · An official [Hostwerk](https://github.com/Passimoritz/hostwerk-public) extension (native extension, Hostwerk 2.11 or newer)
+
+![Screenshot](docs/screenshot.png)
 
 ## What it does
 
