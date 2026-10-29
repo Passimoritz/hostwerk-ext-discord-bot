@@ -10,7 +10,7 @@ Dein eigener Discord-Bot für Hostwerk: /status, /spieler, /start, /stop und /ne
 
 ## Was sie kann
 
-- **Wo:** Livebetrieb → Betrieb → Discord (ein Reiter zusammen mit „Discord-Status“) und Übersichtskachel – seit 1.2.0 ohne eigenen Seitenleisten-Eintrag; die ganze Seite bleibt unter Erweiterungen → Öffnen
+- **Wo:** Livebetrieb → Überwachung → Discord (ältere Hostwerk: Betrieb → Discord) und Übersichtskachel – seit 1.2.0 ohne eigenen Seitenleisten-Eintrag; die ganze Seite bleibt unter Erweiterungen → Öffnen
 - Slash-Befehle /status, /spieler, /start, /stop und /neustart (englisch: /players, /restart)
 - Rechte über Discord-Rollen oder verknüpfte Team-Mitglieder
 - Stoppen und Neustarten erst nach Bestätigung per Knopf

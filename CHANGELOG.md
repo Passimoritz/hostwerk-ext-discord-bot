@@ -1,3 +1,7 @@
+## 1.4.0
+
+- Go live in five areas (Hostwerk with SDK 3.11): the Discord control is a section in Go live → Monitoring (#/live/ueberwachung/discord); older Hostwerk versions keep the tab under “Operate”. / Livebetrieb in fünf Bereichen (Hostwerk mit SDK 3.11): Die Discord-Steuerung ist ein Abschnitt unter Livebetrieb → Überwachung (#/live/ueberwachung/discord); ältere Hostwerk-Versionen behalten den Reiter unter „Betrieb“.
+
 ## 1.3.1
 
 - New animated icon and banner in the common Hostwerk style (isometric block). / Neues animiertes Symbol und Banner im gemeinsamen Hostwerk-Stil (isometrischer Block).

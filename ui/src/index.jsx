@@ -314,13 +314,23 @@ function DiscordBotTile() {
   );
 }
 
+/** Livebetrieb → Überwachung → Discord (SDK 3.11): die ganze Seite ohne ihren Titel – der Abschnitt nennt ihn schon, die Knöpfe bleiben */
+function DiscordBotSection() {
+  return <div className="ext-embedded"><DiscordBotPage /></div>;
+}
+
 export default {
   pages: { main: DiscordBotPage },
+  // Hostwerk mit SDK 3.11: Abschnitt in Livebetrieb → Überwachung (#/live/ueberwachung/discord)
+  sections: {
+    'live.ueberwachung': [{ id: 'discord', title: 'Discord', icon: Bot, Component: DiscordBotSection, order: 61 }],
+  },
   slots: {
     // Seit Hostwerk 3.0 (SDK 3.2) ohne eigenen Seitenleisten-Eintrag ("nav": false) – die ganze Seite als Reiter im passenden Bereich;
     // Hostwerk blendet dabei ihren Titel aus (Reiter + Herkunftszeile sagen schon, was es ist), die Knöpfe bleiben
-    // Ein gemeinsamer Reiter „Discord“ mit dem Discord-Status (gleiche id) – Livebetrieb → Betrieb
-    'live.tabs': [{ id: 'discord', title: 'Discord', icon: Bot, Component: DiscordBotPage, group: 'betrieb', order: 61 }],
+    // Ältere Hostwerk (vor SDK 3.11): Reiter „Discord“ unter Livebetrieb → Betrieb. fallback: true – Hostwerk 3.11 und neuer
+    // lassen ihn weg (Abschnitt oben), ältere zeigen ihn wie bisher.
+    'live.tabs': [{ id: 'discord', title: 'Discord', icon: Bot, Component: DiscordBotPage, group: 'betrieb', order: 61, fallback: true }],
     'dashboard.tiles': [{ id: 'state', title: 'Discord control', icon: 'bot', size: 'third', Component: DiscordBotTile }],
   },
 };
