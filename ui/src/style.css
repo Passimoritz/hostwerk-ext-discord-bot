@@ -18,3 +18,4 @@
 .info-tip-body:has(.dbot-tip-step) { counter-reset: dbot-step; }
 .dbot-tip-step { display: block; margin-top: var(--sp-1); counter-increment: dbot-step; }
 .dbot-tip-step::before { content: counter(dbot-step) ". "; font-weight: 600; }
+.dbot-errtext { overflow-wrap: anywhere; margin-top: 2px; }

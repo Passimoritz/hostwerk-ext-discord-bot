@@ -70,7 +70,7 @@ function activate(host) {
     const cfg = store.cfg();
     if ((cfg.active !== false) !== wasActive) { if (cfg.active === false) bot.stop(); else bot.start(); }
     else if (bot.gw && bot.gw.state === 'ready') {
-      bot.lastPresence = '';
+      bot.lastPresence = null; // not '' – otherwise switching the bot status off never clears it in Discord
       bot.updatePresence();
       await bot.registerCommands().catch((e) => { bot.lastError = e.message; });
     }
@@ -88,6 +88,7 @@ function activate(host) {
     await bot.registerCommands(true);
     res.json(state());
   });
+  host.router.post('/discord-bot/test-message', async (req, res) => { await bot.testMessage((req.body || {}).channelId); res.json(state()); });
   host.router.delete('/discord-bot/log', (req, res) => { store.clearLog(); res.json(state()); });
 
   host.on('shutdown', () => deactivate());

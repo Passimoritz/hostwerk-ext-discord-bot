@@ -46,7 +46,6 @@ function clean(patch, prev) {
     out.feed = f;
   }
   if (typeof patch.presence === 'boolean') out.presence = patch.presence;
-  if (typeof patch.commandsKey === 'string') out.commandsKey = patch.commandsKey;
   return out;
 }
 
@@ -71,7 +70,9 @@ class Store {
   cfg() { return this.data; }
   /** Settings for the page – never the token. */
   pub() { const { token, commandsKey, ...rest } = this.data; return rest; }
-  save(patch) { this.data = { ...clean(patch || {}, this.data), token: this.data.token }; this.write('config.json', this.data); return this.pub(); }
+  save(patch) { this.data = { ...clean(patch && typeof patch === 'object' && !Array.isArray(patch) ? patch : {}, this.data), token: this.data.token }; this.write('config.json', this.data); return this.pub(); }
+  /** Which commands are registered where (bot|server|list) – set by the bot only, never through the settings API. */
+  rememberCommands(key) { this.data.commandsKey = key; this.write('config.json', this.data); }
 
   token() { return this.data.token ? this.secrets.open(this.data.token) : ''; }
   setToken(token) {

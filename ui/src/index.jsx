@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Bot, ExternalLink, KeyRound, ShieldCheck, Server, Radio, Trash2, RefreshCw, Users, ListChecks, Activity, UserPlus } from 'lucide-react';
+import { Bot, ExternalLink, KeyRound, ShieldCheck, Server, Radio, Trash2, RefreshCw, Users, ListChecks, Activity, UserPlus, Send } from 'lucide-react';
 import { put, post, del, useApi, openExternal } from '@hostwerk/api';
 import { Btn, SettingRow, Switch, Callout, InfoTip, Field, Empty, Loading, TileEmpty, Seg, toast, confirmDialog } from '@hostwerk/ui';
 import { t } from '@hostwerk/i18n';
@@ -177,8 +177,11 @@ function TeamLinks({ s, save }) {
   );
 }
 
-function Extras({ s, save }) {
+function Extras({ s, save, setData }) {
   const c = s.cfg;
+  const [busy, setBusy] = useState(false);
+  // Test message: missing channel rights ("Missing Access") show at once instead of with the first player
+  const test = async () => { setBusy(true); try { setData(await post('/discord-bot/test-message', { channelId: f.channelId })); toast.success('Test message sent – have a look in Discord'); } catch (e) { toast.error(e); } setBusy(false); };
   const f = c.feed || {};
   const guilds = c.guildId ? s.guilds.filter((g) => g.id === c.guildId) : s.guilds;
   const channels = guilds.flatMap((g) => g.channels.map((ch) => ({ ...ch, guild: g.name })));
@@ -195,6 +198,7 @@ function Extras({ s, save }) {
               <option value="">Choose a channel …</option>
               {channels.map((ch) => <option key={ch.id} value={ch.id}>#{ch.name}{guilds.length > 1 ? ` · ${ch.guild}` : ''}</option>)}
             </select>
+            <Btn className="sm ghost" icon={Send} busy={busy} disabled={!f.channelId || s.state !== 'ready'} onClick={test} title={s.state !== 'ready' ? t('The bot is not connected.') : undefined}>Test message</Btn>
             <Seg options={[{ id: '', label: 'Like Hostwerk' }, { id: 'de', label: 'German' }, { id: 'en', label: 'English' }]} value={f.lang || ''} onChange={(v) => save({ feed: { lang: v } })} />
           </div>
         )}
@@ -223,7 +227,9 @@ function Log({ s, onClear }) {
                   <td className="small muted">{new Date(e.t).toLocaleString()}</td>
                   <td>{e.user}</td>
                   <td><code>{ACTION[e.action] || e.action}</code>{e.service ? <span className="small"> {e.service}</span> : null}</td>
-                  <td><span className={`badge ${kind}`} title={e.result === 'error' ? e.detail : undefined}>{label}</span>{e.detail && WHY[e.detail] ? <span className="tiny muted"> {WHY[e.detail]}</span> : null}</td>
+                  <td><span className={`badge ${kind}`}>{label}</span>{e.detail && WHY[e.detail] ? <span className="tiny muted"> {WHY[e.detail]}</span> : null}
+                    {/* The reason as text, not only as a tooltip – readable with touch and keyboard too */}
+                    {e.result === 'error' && e.detail && !WHY[e.detail] && <div className="small c-err dbot-errtext">{e.detail}</div>}</td>
                 </tr>
               );
             })}
@@ -234,7 +240,8 @@ function Log({ s, onClear }) {
   );
 }
 
-function DiscordBotPage() {
+/** embedded: as a section (Live → Monitoring → Discord) – Hostwerk's card names it; the state badge sits in the bot card only. */
+function DiscordBotPage({ embedded = false }) {
   const st = useApi('/discord-bot', []);
   const s = st.data;
   const [token, setToken] = useState(false);
@@ -249,7 +256,7 @@ function DiscordBotPage() {
     try { st.setData(await put('/discord-bot/token', { token: '' })); } catch (e) { toast.error(e); }
   };
   const register = async () => { try { st.setData(await post('/discord-bot/commands')); toast.success('Commands registered'); } catch (e) { toast.error(e); } };
-  const clearLog = async () => { if (await confirmDialog({ title: 'Clear the action log?', confirm: 'Clear', danger: true })) st.setData(await del('/discord-bot/log')); };
+  const clearLog = async () => { if (!(await confirmDialog({ title: 'Clear the action log?', confirm: 'Clear', danger: true }))) return; try { st.setData(await del('/discord-bot/log')); } catch (e) { toast.error(e); } };
   return (
     <div className="page fade-in dbot">
       <div className="page-head">
@@ -258,7 +265,7 @@ function DiscordBotPage() {
           <p>Your own Discord bot: /status, /players, /start, /stop and /restart from your Discord server.</p>
         </div>
         <div className="actions">
-          <StateBadge s={s} />
+          {!embedded && <StateBadge s={s} />}
           <InfoTip title="Commands">/status – which services run · /players – who is online · /start, /stop, /restart &lt;service&gt; – with a confirm button for stop and restart. German Discord shows /spieler and /neustart.</InfoTip>
         </div>
       </div>
@@ -269,6 +276,8 @@ function DiscordBotPage() {
           </div>
           <div className="card-body stack">
             {s.error && s.state !== 'ready' && <Callout kind="err" dismissible={false}>{s.error}</Callout>}
+            {/* Verbunden, aber z. B. Befehle nicht angemeldet oder Kanal-Meldung abgelehnt – sonst sähe man das nirgends */}
+            {s.error && s.state === 'ready' && <Callout kind="warn" dismissible={false}>{t('Discord answered: {error}', { error: s.error })}</Callout>}
             {s.state === 'ready' && !s.guilds.length && <Callout kind="warn" dismissible={false}>The bot is not on any Discord server yet – invite it with the button below.</Callout>}
             {token ? <TokenForm onSaved={(d) => { st.setData(d); setToken(false); }} onCancel={() => setToken(false)} /> : (
               <div className="row-tight dbot-actions">
@@ -292,7 +301,7 @@ function DiscordBotPage() {
       </div>
       {part === 'rights' && <div className="grid grid-2 dbot-grid"><Rights s={s} save={save} /><Services s={s} save={save} /></div>}
       {part === 'team' && <TeamLinks s={s} save={save} />}
-      {part === 'messages' && <Extras s={s} save={save} />}
+      {part === 'messages' && <Extras s={s} save={save} setData={st.setData} />}
       {part === 'log' && <Log s={s} onClear={clearLog} />}
     </div>
   );
@@ -316,7 +325,7 @@ function DiscordBotTile() {
 
 /** Livebetrieb → Überwachung → Discord (SDK 3.11): die ganze Seite ohne ihren Titel – der Abschnitt nennt ihn schon, die Knöpfe bleiben */
 function DiscordBotSection() {
-  return <div className="ext-embedded"><DiscordBotPage /></div>;
+  return <div className="ext-embedded"><DiscordBotPage embedded /></div>;
 }
 
 export default {

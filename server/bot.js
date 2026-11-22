@@ -36,6 +36,7 @@ class DiscordBot {
     this.rest = null;
     this.guilds = new Map(); // id → { id, name, roles, channels }
     this.pending = new Map(); // one-time key → question waiting for a button
+    this.busy = new Map(); // service id → action sent from Discord and not finished yet (Hostwerk may still say "stopped")
     this.feed = [];
     this.feedTimer = null;
     this.presenceTimer = null;
@@ -102,7 +103,12 @@ class DiscordBot {
     const key = `${this.gw.appId}|${cfg.guildId || ''}|${C.definitionsKey()}`;
     if (!force && cfg.commandsKey === key) return false;
     await this.rest.commands(this.gw.appId, cfg.guildId || null, C.definitions());
-    this.d.store.save({ commandsKey: key });
+    // Same bot, other place (one server ↔ every server, or another server): remove the old commands – otherwise Discord
+    // shows every command twice. The bot may have left the old server meanwhile – then there is nothing to remove.
+    const [oldApp, oldGuild] = String(cfg.commandsKey || '').split('|');
+    if (oldApp === this.gw.appId && (oldGuild || '') !== (cfg.guildId || '')) await this.rest.commands(this.gw.appId, oldGuild || null, []).catch((e) => this.d.log('commands', e.message));
+    this.d.store.rememberCommands(key);
+    this.lastError = null;
     return true;
   }
 
@@ -162,6 +168,9 @@ class DiscordBot {
     if (!svc) return this.say(i, tr('There is no such service – pick one from the list.'));
     const r = this.allowed(i, name, svc.id);
     if (!r.ok) return this.deny(i, tr, name, svc, r.why);
+    if (this.busy.has(svc.id)) return this.say(i, this.busyText(svc, tr));
+    if (name === 'start' && svc.state === 'starting') return this.say(i, tr('{name} is starting already.', { name: C.md(svc.name) }));
+    if (name === 'stop' && svc.state === 'stopping') return this.say(i, tr('{name} is stopping already.', { name: C.md(svc.name) }));
     if (name === 'start' && svc.state === 'running') return this.say(i, tr('{name} is already running.', { name: C.md(svc.name) }));
     if (name === 'stop' && svc.state === 'stopped') return this.say(i, tr('{name} is already stopped.', { name: C.md(svc.name) }));
     if (C.needsConfirm(cfg, name)) {
@@ -190,6 +199,7 @@ class DiscordBot {
     // Rights again: roles or links may have changed while the question was open
     const r = this.allowed(i, q.action, svc.id);
     if (!r.ok) { this.addLog(i, q.action, svc, 'denied', r.why); return this.rest.reply(i, C.RT.UPDATE, { content: tr(DENIED[r.why]), components: [] }); }
+    if (this.busy.has(svc.id)) return this.rest.reply(i, C.RT.UPDATE, { content: this.busyText(svc, tr), components: [], allowed_mentions: { parse: [] } });
     await this.rest.reply(i, C.RT.UPDATE, { content: tr(BUSY[q.action], { name: `**${C.md(svc.name)}**` }), components: [], allowed_mentions: { parse: [] } });
     const text = await this.run(i, q.action, svc, tr, r.via);
     return this.rest.edit(this.gw.appId, i.token, { content: text, components: [], allowed_mentions: { parse: [] } });
@@ -206,7 +216,9 @@ class DiscordBot {
   async run(i, action, svc, tr, via) {
     let timer;
     try {
+      this.busy.set(svc.id, action);
       const done = this.d.hw.control(svc.id, action).then(() => 'done');
+      done.then(() => this.busy.delete(svc.id), () => this.busy.delete(svc.id));
       const wait = new Promise((r) => { timer = this.tm.setTimeout(() => r('later'), ACTION_WAIT); });
       const how = await Promise.race([done, wait]);
       done.catch(() => {}); // a later error lands in Hostwerk's own log
@@ -214,9 +226,19 @@ class DiscordBot {
       this.audit(i, action, svc);
       return how === 'later' ? tr('{name} is still busy – Hostwerk carries on in the background.', { name: `**${C.md(svc.name)}**` }) : tr(DONE[action], { name: `**${C.md(svc.name)}**` });
     } catch (e) {
+      this.busy.delete(svc.id);
       this.addLog(i, action, svc, 'error', e.message);
       return tr('That did not work: {error}', { error: tr(String(e.message || e)).slice(0, 300) });
     } finally { this.tm.clearTimeout(timer); }
+  }
+
+  /** Answer while a start/stop/restart from Discord is still running for this service. */
+  busyText(svc, tr) {
+    const a = this.busy.get(svc.id);
+    const name = C.md(svc.name);
+    if (a === 'start') return tr('{name} is starting already.', { name });
+    if (a === 'stop') return tr('{name} is stopping already.', { name });
+    return tr('{name} is still busy – Hostwerk carries on in the background.', { name: `**${name}**` });
   }
 
   allowed(i, action, serviceId) {
@@ -265,7 +287,29 @@ class DiscordBot {
     const f = this.cfg.feed || {};
     if (!events.length || !this.rest || !f.channelId) return;
     const lang = f.lang === 'en' || f.lang === 'de' ? f.lang : this.d.lang();
-    try { await this.rest.send(f.channelId, { content: C.feedText(events, (s, v) => this.t(lang, s, v)), allowed_mentions: { parse: [] } }); } catch (e) { this.lastError = e.message; }
+    try {
+      await this.rest.send(f.channelId, { content: C.feedText(events, (s, v) => this.t(lang, s, v)), allowed_mentions: { parse: [] } });
+      if (this.feedError && this.lastError === this.feedError) this.lastError = null; // the channel works again
+      this.feedError = null;
+    } catch (e) { this.lastError = e.message; this.feedError = e.message; }
+  }
+
+  /**
+   * "Send a test message": one short message into the chosen channel right away – missing channel rights show at once
+   * (Discord's answer, e.g. "Missing Access", comes back as the error).
+   */
+  async testMessage(channelId) {
+    const f = this.cfg.feed || {};
+    const id = String(channelId || f.channelId || '');
+    if (!id) throw Object.assign(new Error(this.t(this.d.lang(), 'Choose a channel first.')), { status: 400 });
+    if (!this.rest || !this.gw || this.gw.state !== 'ready') throw Object.assign(new Error(this.t(this.d.lang(), 'The bot is not connected.')), { status: 409 });
+    const lang = f.lang === 'en' || f.lang === 'de' ? f.lang : this.d.lang();
+    try {
+      await this.rest.send(id, { content: this.t(lang, 'Test message from Hostwerk – player messages will appear in this channel.'), allowed_mentions: { parse: [] } });
+    } catch (e) { throw Object.assign(new Error(e.message), { status: 502 }); }
+    if (this.feedError && this.lastError === this.feedError) this.lastError = null; // the channel works (again)
+    this.feedError = null;
+    return true;
   }
 
   /** Something changed in Hostwerk → update the bot status soon (bundled). */

@@ -18,6 +18,7 @@
   "color": "#4752c4",
   "category": "communication",
   "hostwerk": ">=2.11.0",
+  "sdkVersion": "3.16",
   "permissions": [
     "native"
   ],
@@ -35,6 +36,11 @@
   },
   "backend": "server/index.js",
   "ui": "ui/index.js",
+  "data": {
+    "folders": [
+      "data/discord-bot"
+    ]
+  },
   "synergies": [
     {
       "with": "team",

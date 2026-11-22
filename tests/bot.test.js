@@ -64,7 +64,8 @@ function fakeFetch(answer = () => ({ status: 200, body: {} })) {
   const f = async (url, init) => {
     const call = { url, method: init.method, body: init.body ? JSON.parse(init.body) : undefined, headers: init.headers };
     calls.push(call);
-    const a = answer(call) || { status: 200, body: {} };
+    const a = f.next || answer(call) || { status: 200, body: {} }; // f.next: one answer for the next call
+    f.next = null;
     return new Response(a.status === 204 ? null : JSON.stringify(a.body ?? {}), { status: a.status });
   };
   f.calls = calls;
@@ -500,6 +501,59 @@ test('bot: player messages are bundled into one channel message', async () => {
   bot.stop();
 });
 
+test('bot: switching between one server and every server removes the old commands (no duplicates in Discord)', async () => {
+  const { bot, fetch, store } = setup();
+  await flush();
+  store.save({ guildId: GUILD });
+  await bot.registerCommands();
+  let put = fetch.calls.filter((c) => c.method === 'PUT');
+  assert.match(put[1].url, new RegExp(`/applications/${APP}/guilds/${GUILD}/commands$`));
+  assert.strictEqual(put[1].body.length, 5);
+  assert.match(put[2].url, new RegExp(`/applications/${APP}/commands$`));
+  assert.deepStrictEqual(put[2].body, [], 'global commands removed');
+  store.save({ guildId: '' });
+  await bot.registerCommands();
+  put = fetch.calls.filter((c) => c.method === 'PUT');
+  assert.match(put[4].url, new RegExp(`/guilds/${GUILD}/commands$`));
+  assert.deepStrictEqual(put[4].body, [], 'server commands removed');
+  // settings API cannot fake the fingerprint
+  store.save({ commandsKey: 'x' });
+  assert.notStrictEqual(store.cfg().commandsKey, 'x');
+  bot.stop();
+});
+
+test('bot: a failed registration is shown and cleared after the next success; busy services are not started twice', async () => {
+  const { bot, interact, member, services, store, fetch } = setup();
+  await flush();
+  fetch.next = { status: 403, body: { message: 'Missing Access', code: 50001 } };
+  store.save({ guildId: GUILD });
+  await bot.registerCommands().catch((e) => { bot.lastError = e.message; });
+  assert.strictEqual(bot.status().error, 'Missing Access');
+  await bot.registerCommands(true);
+  assert.strictEqual(bot.status().error, null);
+  services[1].state = 'starting';
+  const [r] = await interact({ type: 2, data: { name: 'start', options: [{ name: 'service', value: 'web:apache' }] }, member: member([ROLE_MOD]) });
+  assert.match(r.body.data.content, /Apache startet schon/);
+  bot.stop();
+});
+
+test('bot: a second /start while Hostwerk still prepares the first one is not sent twice', async () => {
+  let release;
+  const calls = [];
+  const { bot, interact, member } = setup({ control: (id, action) => { calls.push(`${action}:${id}`); return new Promise((r) => { release = r; }); } });
+  await flush();
+  const start = { type: 2, data: { name: 'start', options: [{ name: 'service', value: 'web:apache' }] }, member: member([ROLE_MOD]) };
+  await interact(start); // Hostwerk still reports "stopped" while it prepares the start
+  const [r] = await interact(start);
+  assert.match(r.body.data.content, /Apache startet schon/);
+  assert.deepStrictEqual(calls, ['start:web:apache']);
+  release(); await flush(); await flush();
+  await interact(start);
+  assert.strictEqual(calls.length, 2, 'free again once the first start is done');
+  release(); await flush();
+  bot.stop();
+});
+
 test('bot: without token or switched off it does not connect', () => {
   FakeWS.all = [];
   const store = tmpStore();
@@ -522,4 +576,15 @@ test('every text the bot sends has a German translation', () => {
   const missing = [...texts].filter((s) => /[a-z]/.test(s) && !de[s] && !['Custom Status'].includes(s));
   assert.deepStrictEqual(missing, []);
   for (const [k, v] of Object.entries(de)) if (k !== '$patterns') assert.ok(typeof v === 'string' && v.trim(), k);
+});
+
+test('bot: test message goes into the channel, Discord\'s refusal comes back as the error', async () => {
+  const { bot, fetch } = setup({ cfg: { feed: { on: true, channelId: '888888888888888888' } } });
+  await flush();
+  assert.strictEqual(await bot.testMessage(), true);
+  const call = fetch.calls.find((c) => c.url.includes('/channels/888888888888888888/messages'));
+  assert.ok(call, 'sent to the chosen channel');
+  assert.match(JSON.stringify(call), /Testnachricht von Hostwerk/);
+  bot.stop();
+  await assert.rejects(bot.testMessage('1'), (e) => e.status === 409);
 });

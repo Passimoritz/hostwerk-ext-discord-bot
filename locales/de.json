@@ -169,6 +169,9 @@
   "Log ({n})": "Protokoll ({n})",
   "How to get the token": "So bekommst du den Token",
   "Paste the token here.": "Füge den Token hier ein.",
+  "{name} is starting already.": "{name} startet schon.",
+  "{name} is stopping already.": "{name} wird schon gestoppt.",
+  "Discord answered: {error}": "Discord antwortet: {error}",
   "$patterns": [
     [
       "{} actions today",
@@ -179,5 +182,9 @@
       "Team-Mitglied für {}"
     ]
   ],
-  "Discord": "Discord"
+  "Discord": "Discord",
+  "Choose a channel first.": "Wähle zuerst einen Kanal.",
+  "Test message from Hostwerk – player messages will appear in this channel.": "Testnachricht von Hostwerk – Spieler-Meldungen erscheinen in diesem Kanal.",
+  "Test message": "Testnachricht",
+  "Test message sent – have a look in Discord": "Testnachricht gesendet – schau in Discord nach"
 }
